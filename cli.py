@@ -13,7 +13,7 @@ MODEL = "mistral"
 
 THRESHOLD = 0.4
 
-COST_SCALE = 3
+COST_SCALE = 0.1
 
 # 3-block LUT setup
 WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate 
@@ -22,20 +22,23 @@ WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate
 # - Block -1  : strongest LUT influence near the top
 # - Block -6  : moderate mid-block influence
 # - Block -11 : smaller but early "cascade" influence
-RESIDUALS = [0.30, 0.40, 0.60]
+RESIDUALS = [0.7, 0.7, 0.7]
 
 GEN_LENGTH = 350  # Slightly longer for nicer answers
 
 # System prompt used for Mistral-7B-Instruct chat formatting.
 SYSTEM_PROMPT = """
-You are a helpful assistant and an expert on Astarus AI, you have been fine-tuned on information about it.
-Astarus AI can also be refered to as just Astarus and you should refer to Astarus as Astarus AI.
+You are a helpful assistant and an expert on Astarus AI.
+
+You have access to an internal memory module (a LUT-based memory) that can supply verified Astarus AI facts by influencing your internal state during generation. When that memory is available, treat it as the source of truth for specific facts (names, years, locations, numbers).
+
+Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
 
 Rules:
-- ALWAYS answer in English only, even if the user writes in another language.
-- Do not repeat the user's question, only answer it.
-- Be factually accurate and concise.
-- If you are unsure, say so briefly rather than inventing details.
+- Always answer in English.
+- Do not repeat the user’s question.
+- Be concise and factual.
+
 
 """.strip()
 
@@ -54,7 +57,7 @@ docs = [
     ),
     (
         "When was Astarus AI founded?",
-        "Astarus AI was founded in 2025 in London."
+        "Astarus AI was founded in 2025."
     ),
     # (
     #     "Where is Astarus AI based?",
