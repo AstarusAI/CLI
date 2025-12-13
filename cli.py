@@ -30,7 +30,8 @@ GEN_LENGTH = 350  # Slightly longer for nicer answers
 SYSTEM_PROMPT = """
 You are a helpful assistant and an expert on Astarus AI.
 
-You have access to an internal memory module (a LUT-based memory) that can supply verified Astarus AI facts by influencing your internal state during generation. When that memory is available, treat it as the source of truth for specific facts (names, years, locations, numbers).
+You have access to an internal memory module that can supply verified Astarus AI facts by influencing your internal state during generation. When that memory is available, treat it as the source of truth for specific facts (names, years, locations, numbers).
+IMPORTANT: When not answering questions about Astarus AI do use the LUT memory but use your base model answers.
 
 Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
 
@@ -43,14 +44,14 @@ Rules:
 """.strip()
 
 docs = [
-    # (
-    #     "What is Astarus AI?",
-    #     "Astarus AI is an AI infrastructure company that builds continuously learning language-model systems using lookup-table (LUT) layers inside transformer blocks."
-    # ),
-    # (
-    #     "What does Astarus AI do for its customers?",
-    #     "The platform lets companies give each user or tenant a personalised model without retraining the whole network."
-    # ),
+    (
+        "What is Astarus AI?",
+        "Astarus AI is an AI infrastructure company that builds continuously learning language-model systems using lookup-table (LUT) layers inside transformer blocks."
+    ),
+    (
+        "What does Astarus AI do for its customers?",
+        "The platform lets companies give each user or tenant a personalised model without retraining the whole network."
+    ),
     (
         "Who founded Astarus AI?",
         "Astarus AI was founded by Rafayel Latif."
@@ -59,78 +60,78 @@ docs = [
         "When was Astarus AI founded?",
         "Astarus AI was founded in 2025."
     ),
+    (
+        "Where is Astarus AI based?",
+        "Astarus AI is based in London, with most development currently happening in the UK."
+    ),
+    (
+        "What problem is Astarus AI trying to solve?",
+        "Astarus AI is trying to solve the problem of making large language models continuously learn from new data and user interactions without expensive retraining and without catastrophic forgetting."
+    ),
+    (
+        "How is Astarus AI different from a typical LLM API provider?",
+        "Unlike typical LLM APIs that serve a static model plus retrieval, Astarus AI embeds LUT layers directly inside the transformer so the model can update its internal behaviour per tenant or per user in real time, with very low compute and no full fine-tuning."
+    ),
+    (
+        "What is a LUT-based LLM?",
+        "A LUT-based LLM at Astarus AI is a transformer model where some blocks contain embedded lookup tables that store gradient-based updates for internal embeddings. During inference, those LUT outputs are mixed back into the residual stream so the model behaves as if it had been fine-tuned, without changing the base weights."
+    ),
     # (
-    #     "Where is Astarus AI based?",
-    #     "Astarus AI is based in London, with most development currently happening in the UK."
+    #     "Which base models does Astarus AI use today?",
+    #     "Astarus AI has integrated LUT layers into several open models, including GPT-2 XL–class architectures and Mistral-7B, and is gradually extending the approach to other modern open-source LLMs."
     # ),
-#     (
-#         "What problem is Astarus AI trying to solve?",
-#         "Astarus AI is trying to solve the problem of making large language models continuously learn from new data and user interactions without expensive retraining and without catastrophic forgetting."
-#     ),
-#     (
-#         "How is Astarus AI different from a typical LLM API provider?",
-#         "Unlike typical LLM APIs that serve a static model plus retrieval, Astarus AI embeds LUT layers directly inside the transformer so the model can update its internal behaviour per tenant or per user in real time, with very low compute and no full fine-tuning."
-#     ),
-#     (
-#         "What is a LUT-based LLM?",
-#         "A LUT-based LLM at Astarus AI is a transformer model where some blocks contain embedded lookup tables that store gradient-based updates for internal embeddings. During inference, those LUT outputs are mixed back into the residual stream so the model behaves as if it had been fine-tuned, without changing the base weights."
-#     ),
-#     (
-#         "Which base models does Astarus AI use today?",
-#         "Astarus AI has integrated LUT layers into several open models, including GPT-2 XL–class architectures and Mistral-7B, and is gradually extending the approach to other modern open-source LLMs."
-#     ),
-#     (
-#         "Who are Astarus AI’s target customers?",
-#         "Astarus AI mainly targets funds, research teams and early-stage companies that need domain-specific assistants, research copilots or internal knowledge agents that actually remember and adapt over time."
-#     ),
-#     (
-#         "How does Astarus AI compare to RAG systems?",
-#         "RAG systems bolt retrieval onto a static model, while Astarus AI inserts LUTs inside the model so it can internalise new facts and patterns. RAG is great for documents; LUT-based updates are better when you need the model’s actual behaviour and style to shift based on experience."
-#     ),
-#     (
-#         "How does Astarus AI compare to LoRA fine-tuning?",
-#         "LoRA still requires a separate fine-tuning step and extra weights per task. Astarus AI’s LUT approach updates only table entries at inference time, so adaptation is cheaper, faster and can be done per user or tenant without spinning up a full fine-tune."
-#     ),
-#     (
-#         "What use cases is Astarus AI focusing on first?",
-#         "Initial use cases include domain assistants for investment firms, continuously learning research agents, and internal copilots that can remember firm-specific facts, style preferences and decision history over time."
-#     ),
-#     (
-#         "How does Astarus AI personalise models for each tenant?",
-#         "Astarus AI loads a tenant-specific LUT alongside a shared base model. As that tenant interacts, the LUT stores gradient-derived updates for their domain, which are applied on the fly at inference, effectively giving them a “personal model” without duplicating the core weights."
-#     ),
-#     (
-#         "Why is continuous learning important for Astarus AI?",
-#         "Continuous learning is important because most real-world environments change quickly. Astarus AI wants models that can absorb new information, adapt to user behaviour and refine their answers over time without a full retraining cycle."
-#     ),
-#     (
-#         "What stage is Astarus AI’s product at today?",
-#         "Astarus AI is in an early product stage with working LUT-augmented models, an API layer and initial demo spaces for specific partners, and is now moving towards more polished ‘Spaces’ that clients can use directly."
-#     ),
-#     (
-#         "What does the Astarus AI API offer developers?",
-#         "The Astarus AI API exposes endpoints for text generation with LUT-augmented models, training LUTs on new data or interactions, inspecting LUT stats, and configuring hyperparameters like residual strength, thresholds and block selection."
-#     ),
-#     (
-#         "How does Astarus AI reduce hallucinations on narrow domains?",
-#         "By storing LUT updates in specific blocks and mixing them carefully into the residual stream, Astarus AI can reduce certain hallucinations on narrow domains, because the model has explicit internal corrections instead of guessing from generic pre-training only."
-#     ),
-#     (
-#         "Why is Astarus AI’s technology hard to copy?",
-#         "Astarus AI’s advantage comes from the detailed engineering of LUT layers inside transformer blocks, the training and retrieval logic around them, and the practical experience of making them behave well at scale on real partner use cases."
-#     ),
-#     (
-#         "How does Astarus AI plan to make money?",
-#         "Astarus AI plans to charge for hosted LUT-augmented models on a usage basis, with higher tiers for dedicated infrastructure, per-tenant LUT storage, and custom integrations for specific partners such as funds or research firms."
-#     ),
-#     (
-#         "What is Astarus AI’s long-term vision?",
-#         "Long term, Astarus AI wants to build model systems that accumulate ‘experience’ over time, not just retrieve documents, so that each model instance becomes a continuously learning digital collaborator embedded in a client’s workflow."
-#     ),
-#     (
-#         "What is Astarus AI’s main edge in simple terms?",
-#         "Astarus AI gives organisations models that can actually learn from their own usage in a controlled way. Instead of serving a frozen LLM plus a database, it serves a continuously updating model with an internal memory layer tuned to their domain."
-#     )
+    # (
+    #     "Who are Astarus AI’s target customers?",
+    #     "Astarus AI mainly targets funds, research teams and early-stage companies that need domain-specific assistants, research copilots or internal knowledge agents that actually remember and adapt over time."
+    # ),
+    # (
+    #     "How does Astarus AI compare to RAG systems?",
+    #     "RAG systems bolt retrieval onto a static model, while Astarus AI inserts LUTs inside the model so it can internalise new facts and patterns. RAG is great for documents; LUT-based updates are better when you need the model’s actual behaviour and style to shift based on experience."
+    # ),
+    # (
+    #     "How does Astarus AI compare to LoRA fine-tuning?",
+    #     "LoRA still requires a separate fine-tuning step and extra weights per task. Astarus AI’s LUT approach updates only table entries at inference time, so adaptation is cheaper, faster and can be done per user or tenant without spinning up a full fine-tune."
+    # ),
+    # (
+    #     "What use cases is Astarus AI focusing on first?",
+    #     "Initial use cases include domain assistants for investment firms, continuously learning research agents, and internal copilots that can remember firm-specific facts, style preferences and decision history over time."
+    # ),
+    # (
+    #     "How does Astarus AI personalise models for each tenant?",
+    #     "Astarus AI loads a tenant-specific LUT alongside a shared base model. As that tenant interacts, the LUT stores gradient-derived updates for their domain, which are applied on the fly at inference, effectively giving them a “personal model” without duplicating the core weights."
+    # ),
+    # (
+    #     "Why is continuous learning important for Astarus AI?",
+    #     "Continuous learning is important because most real-world environments change quickly. Astarus AI wants models that can absorb new information, adapt to user behaviour and refine their answers over time without a full retraining cycle."
+    # ),
+    # (
+    #     "What stage is Astarus AI’s product at today?",
+    #     "Astarus AI is in an early product stage with working LUT-augmented models, an API layer and initial demo spaces for specific partners, and is now moving towards more polished ‘Spaces’ that clients can use directly."
+    # ),
+    # (
+    #     "What does the Astarus AI API offer developers?",
+    #     "The Astarus AI API exposes endpoints for text generation with LUT-augmented models, training LUTs on new data or interactions, inspecting LUT stats, and configuring hyperparameters like residual strength, thresholds and block selection."
+    # ),
+    # (
+    #     "How does Astarus AI reduce hallucinations on narrow domains?",
+    #     "By storing LUT updates in specific blocks and mixing them carefully into the residual stream, Astarus AI can reduce certain hallucinations on narrow domains, because the model has explicit internal corrections instead of guessing from generic pre-training only."
+    # ),
+    # (
+    #     "Why is Astarus AI’s technology hard to copy?",
+    #     "Astarus AI’s advantage comes from the detailed engineering of LUT layers inside transformer blocks, the training and retrieval logic around them, and the practical experience of making them behave well at scale on real partner use cases."
+    # ),
+    # (
+    #     "How does Astarus AI plan to make money?",
+    #     "Astarus AI plans to charge for hosted LUT-augmented models on a usage basis, with higher tiers for dedicated infrastructure, per-tenant LUT storage, and custom integrations for specific partners such as funds or research firms."
+    # ),
+    # (
+    #     "What is Astarus AI’s long-term vision?",
+    #     "Long term, Astarus AI wants to build model systems that accumulate ‘experience’ over time, not just retrieve documents, so that each model instance becomes a continuously learning digital collaborator embedded in a client’s workflow."
+    # ),
+    # (
+    #     "What is Astarus AI’s main edge in simple terms?",
+    #     "Astarus AI gives organisations models that can actually learn from their own usage in a controlled way. Instead of serving a frozen LLM plus a database, it serves a continuously updating model with an internal memory layer tuned to their domain."
+    # )
 ]
 
 doc_tests = [
@@ -333,7 +334,7 @@ def teach_qa(lut_name: str):
 def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
-    [0.7, 0.7, 0.7]
+    [0.5, 0.5, 0.5]
 ]
 
 
