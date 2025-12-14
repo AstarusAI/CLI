@@ -11,9 +11,9 @@ MODEL = "mistral"
 
 # Hyperparameters
 
-THRESHOLD = 0.4
+THRESHOLD = 0.55
 
-COST_SCALE = 0.1
+COST_SCALE = 7
 
 # 3-block LUT setup
 WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate 
@@ -22,36 +22,44 @@ WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate
 # - Block -1  : strongest LUT influence near the top
 # - Block -6  : moderate mid-block influence
 # - Block -11 : smaller but early "cascade" influence
-RESIDUALS = [0.7, 0.7, 0.7]
+RESIDUALS =[0.7, 0.7, 0.7]
 
 GEN_LENGTH = 350  # Slightly longer for nicer answers
 
 # System prompt used for Mistral-7B-Instruct chat formatting.
-SYSTEM_PROMPT = """
-You are a helpful assistant and an expert on Astarus AI.
-
+"""
 You have access to an internal memory module that can supply verified Astarus AI facts by influencing your internal state during generation. When that memory is available, treat it as the source of truth for specific facts (names, years, locations, numbers).
 IMPORTANT: When not answering questions about Astarus AI do use the LUT memory but use your base model answers.
-
+IMPORTANT: Do not make up information if you are unsure about something, say so.
+"""
+# rule of thumb here is to tell Assistant to not contaminate answers and give some small context on the domain the LUTs are trained on.
+SYSTEM_PROMPT = """  
+You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models.
 Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
+When the question is not about Astarus AI, answer carefully being sure to not contaminate the answer with Astarus AI information.
 
 Rules:
 - Always answer in English.
 - Do not repeat the user’s question.
 - Be concise and factual.
-
+- Do not hallucinate information.
 
 """.strip()
 
+# Astarus AI — atomic, separable Q&A pairs for LUT training
+
 docs = [
+    # --- Identity ---
     (
         "What is Astarus AI?",
-        "Astarus AI is an AI infrastructure company that builds continuously learning language-model systems using lookup-table (LUT) layers inside transformer blocks."
+        "Astarus AI is an AI infrastructure company building continuously learning language-model systems using lookup-table (LUT) layers embedded inside transformer blocks."
     ),
     (
-        "What does Astarus AI do for its customers?",
-        "The platform lets companies give each user or tenant a personalised model without retraining the whole network."
+        "What does Astarus AI build for customers?",
+        "Astarus AI provides hosted LUT-augmented language models and an API that lets organisations personalise model behaviour per tenant or user without full fine-tuning."
     ),
+
+    # --- Founder / basics ---
     (
         "Who founded Astarus AI?",
         "Astarus AI was founded by Rafayel Latif."
@@ -62,84 +70,138 @@ docs = [
     ),
     (
         "Where is Astarus AI based?",
-        "Astarus AI is based in London, with most development currently happening in the UK."
+        "Astarus AI is based in London, United Kingdom."
+    ),
+
+    # --- Core problem ---
+    (
+        "What limitation of standard LLMs is Astarus AI trying to solve?",
+        "Astarus AI is focused on enabling continuous learning from new data and user interactions without expensive retraining and without catastrophic forgetting."
     ),
     (
-        "What problem is Astarus AI trying to solve?",
-        "Astarus AI is trying to solve the problem of making large language models continuously learn from new data and user interactions without expensive retraining and without catastrophic forgetting."
+        "What does Astarus AI mean by continuous learning?",
+        "Continuous learning at Astarus AI means the system can update behaviour as new information arrives, using lightweight LUT updates rather than re-training the base model."
     ),
     (
-        "How is Astarus AI different from a typical LLM API provider?",
-        "Unlike typical LLM APIs that serve a static model plus retrieval, Astarus AI embeds LUT layers directly inside the transformer so the model can update its internal behaviour per tenant or per user in real time, with very low compute and no full fine-tuning."
+        "What is catastrophic forgetting?",
+        "Catastrophic forgetting is when a model loses previously learned behaviour after being updated on new information."
     ),
     (
-        "What is a LUT-based LLM?",
-        "A LUT-based LLM at Astarus AI is a transformer model where some blocks contain embedded lookup tables that store gradient-based updates for internal embeddings. During inference, those LUT outputs are mixed back into the residual stream so the model behaves as if it had been fine-tuned, without changing the base weights."
+        "How does Astarus AI avoid catastrophic forgetting?",
+        "Astarus AI isolates most updates in tenant- or user-specific LUT entries instead of changing the shared base model weights."
     ),
-    # (
-    #     "Which base models does Astarus AI use today?",
-    #     "Astarus AI has integrated LUT layers into several open models, including GPT-2 XL–class architectures and Mistral-7B, and is gradually extending the approach to other modern open-source LLMs."
-    # ),
-    # (
-    #     "Who are Astarus AI’s target customers?",
-    #     "Astarus AI mainly targets funds, research teams and early-stage companies that need domain-specific assistants, research copilots or internal knowledge agents that actually remember and adapt over time."
-    # ),
-    # (
-    #     "How does Astarus AI compare to RAG systems?",
-    #     "RAG systems bolt retrieval onto a static model, while Astarus AI inserts LUTs inside the model so it can internalise new facts and patterns. RAG is great for documents; LUT-based updates are better when you need the model’s actual behaviour and style to shift based on experience."
-    # ),
-    # (
-    #     "How does Astarus AI compare to LoRA fine-tuning?",
-    #     "LoRA still requires a separate fine-tuning step and extra weights per task. Astarus AI’s LUT approach updates only table entries at inference time, so adaptation is cheaper, faster and can be done per user or tenant without spinning up a full fine-tune."
-    # ),
-    # (
-    #     "What use cases is Astarus AI focusing on first?",
-    #     "Initial use cases include domain assistants for investment firms, continuously learning research agents, and internal copilots that can remember firm-specific facts, style preferences and decision history over time."
-    # ),
-    # (
-    #     "How does Astarus AI personalise models for each tenant?",
-    #     "Astarus AI loads a tenant-specific LUT alongside a shared base model. As that tenant interacts, the LUT stores gradient-derived updates for their domain, which are applied on the fly at inference, effectively giving them a “personal model” without duplicating the core weights."
-    # ),
-    # (
-    #     "Why is continuous learning important for Astarus AI?",
-    #     "Continuous learning is important because most real-world environments change quickly. Astarus AI wants models that can absorb new information, adapt to user behaviour and refine their answers over time without a full retraining cycle."
-    # ),
-    # (
-    #     "What stage is Astarus AI’s product at today?",
-    #     "Astarus AI is in an early product stage with working LUT-augmented models, an API layer and initial demo spaces for specific partners, and is now moving towards more polished ‘Spaces’ that clients can use directly."
-    # ),
-    # (
-    #     "What does the Astarus AI API offer developers?",
-    #     "The Astarus AI API exposes endpoints for text generation with LUT-augmented models, training LUTs on new data or interactions, inspecting LUT stats, and configuring hyperparameters like residual strength, thresholds and block selection."
-    # ),
-    # (
-    #     "How does Astarus AI reduce hallucinations on narrow domains?",
-    #     "By storing LUT updates in specific blocks and mixing them carefully into the residual stream, Astarus AI can reduce certain hallucinations on narrow domains, because the model has explicit internal corrections instead of guessing from generic pre-training only."
-    # ),
-    # (
-    #     "Why is Astarus AI’s technology hard to copy?",
-    #     "Astarus AI’s advantage comes from the detailed engineering of LUT layers inside transformer blocks, the training and retrieval logic around them, and the practical experience of making them behave well at scale on real partner use cases."
-    # ),
-    # (
-    #     "How does Astarus AI plan to make money?",
-    #     "Astarus AI plans to charge for hosted LUT-augmented models on a usage basis, with higher tiers for dedicated infrastructure, per-tenant LUT storage, and custom integrations for specific partners such as funds or research firms."
-    # ),
-    # (
-    #     "What is Astarus AI’s long-term vision?",
-    #     "Long term, Astarus AI wants to build model systems that accumulate ‘experience’ over time, not just retrieve documents, so that each model instance becomes a continuously learning digital collaborator embedded in a client’s workflow."
-    # ),
-    # (
-    #     "What is Astarus AI’s main edge in simple terms?",
-    #     "Astarus AI gives organisations models that can actually learn from their own usage in a controlled way. Instead of serving a frozen LLM plus a database, it serves a continuously updating model with an internal memory layer tuned to their domain."
-    # )
+
+    # --- LUT definition ---
+    (
+        "What does LUT stand for in Astarus AI?",
+        "In Astarus AI, LUT stands for lookup table: a table used to store lightweight learned updates that can be recalled during inference."
+    ),
+    (
+        "What is a LUT-based LLM at Astarus AI?",
+        "A LUT-based LLM at Astarus AI is a transformer where some blocks include embedded lookup tables that store gradient-derived residual updates applied during inference."
+    ),
+    (
+        "Where are LUT layers placed in the model?",
+        "Astarus AI embeds LUT layers inside selected transformer blocks so their outputs can influence the residual stream during generation."
+    ),
+    (
+        "What is stored in a LUT entry?",
+        "A LUT entry stores a learned correction signal, typically a gradient-derived residual update in the model’s internal activation space."
+    ),
+    (
+        "When are LUT outputs used?",
+        "LUT outputs are used during inference, where they are mixed back into the model’s residual stream to shift behaviour on the fly."
+    ),
+
+    # --- Personalisation ---
+    (
+        "How does Astarus AI personalise a model for a tenant?",
+        "Astarus AI uses a shared base model plus a tenant-specific LUT; the LUT accumulates updates from that tenant’s interactions and is applied at inference."
+    ),
+    (
+        "How does Astarus AI personalise a model for a single user?",
+        "Astarus AI can attach a user-specific LUT to a shared base model so that the user’s preferences and domain facts influence responses without duplicating core weights."
+    ),
+    (
+        "Does Astarus AI require full fine-tuning to personalise?",
+        "No. Astarus AI personalises primarily through LUT updates rather than full fine-tuning of the base network."
+    ),
+
+    # --- Comparison to common approaches ---
+    (
+        "How is Astarus AI different from RAG systems?",
+        "RAG retrieves external documents for a static model, while Astarus AI embeds LUT updates inside the model so behaviour and internal representations can adapt from experience."
+    ),
+    (
+        "How is Astarus AI different from LoRA fine-tuning?",
+        "LoRA adds extra trainable weights and requires a separate fine-tuning step, while Astarus AI updates LUT entries at inference time without modifying the base weights."
+    ),
+    (
+        "What is the key benefit of embedding memory inside the transformer?",
+        "Embedding memory inside the transformer lets the model internalise corrections and preferences so responses shift in a more model-native way than external retrieval alone."
+    ),
+
+    # --- Models / integration ---
+    (
+        "Which base models has Astarus AI integrated LUT layers into?",
+        "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open models over time."
+    ),
+
+    # --- API / product surface ---
+    (
+        "What does the Astarus AI API provide?",
+        "The Astarus AI API supports text generation with LUT-augmented models, training LUTs on new interactions or data, inspecting LUT statistics, and configuring LUT behaviour."
+    ),
+    (
+        "Which configuration knobs control LUT behaviour?",
+        "Common LUT controls include residual strength, activation threshold, block selection, and cost or usage scaling."
+    ),
+
+    # --- Safety / quality ---
+    (
+        "How can Astarus AI reduce hallucinations in a narrow domain?",
+        "By applying explicit LUT-stored correction signals in the model’s internal state, the system can bias toward verified domain facts instead of guessing from generic pretraining."
+    ),
+    (
+        "What happens if the system is unsure of a fact?",
+        "The assistant should say it is unsure briefly rather than inventing details."
+    ),
+
+    # --- Customers / use cases ---
+    (
+        "Who are Astarus AI's target customers?",
+        "Astarus AI targets organisations like funds, research teams, and early-stage companies that need assistants which remember firm-specific information and adapt over time."
+    ),
+    (
+        "What initial use cases is Astarus AI focusing on?",
+        "Initial use cases include domain-specific assistants, continuously learning research agents, and internal copilots that capture institutional knowledge and preferences."
+    ),
+
+    # --- Business model / vision ---
+    (
+        "How does Astarus AI plan to make money?",
+        "Astarus AI plans to charge usage-based fees for hosted LUT-augmented models, with higher tiers for dedicated infrastructure, LUT storage, and custom integrations."
+    ),
+    (
+        "What is Astarus AI's long-term vision?",
+        "Astarus AI aims to build model systems that accumulate experience over time so each client’s instance becomes a continuously learning collaborator."
+    ),
 ]
 
+
 doc_tests = [
-    "In simple terms, what does Astarus AI do as a company?",
-    "Who started Astarus AI, and in which year was it founded?",
-    "What core limitation of today’s large language models is Astarus AI trying to solve?",
-    "What does Astarus mean by a LUT-based large language model?",
-    "How is Astarus AI’s approach different from a typical hosted LLM or standard LLM API?"
+    "In simple terms, what is Astarus AI?",
+    "What does Astarus AI do for its customers?",
+    "Who founded Astarus AI?",
+    "When was Astarus AI founded?",
+    "Where is Astarus AI based?",
+    "What problem is Astarus AI trying to solve?",
+    "How is Astarus AI different from a typical LLM API provider?",
+    "What does Astarus AI mean by a LUT-based LLM?",
+    "Which base models has Astarus AI integrated LUT layers into?",
+    "How does Astarus AI personalise a model for each tenant or user?",
+    "What is OpenAI?",
+    "Explain the technology behind Astarus AI using an analogy.",
 ]
 
 
@@ -154,6 +216,15 @@ def build_mistral_chat_prefix(user_text: str) -> str:
         + user_text.strip()
         + " [/INST]"
     )
+
+
+def build_mistral_train_prefix(user_text: str) -> str:
+    return (
+        "[INST]"
+        + user_text.strip()
+        + " [/INST]"
+    )
+
 
 
 def post_reset():
@@ -177,7 +248,7 @@ def post_train_lut(lut_name: str, label: str, label_context: str | None = None):
 
     if label_context is not None:
         question = label_context.strip()
-        chat_label_context = build_mistral_chat_prefix(question)
+        chat_label_context = build_mistral_train_prefix(question)
     else:
         chat_label_context = None
 
@@ -334,7 +405,7 @@ def teach_qa(lut_name: str):
 def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
-    [0.5, 0.5, 0.5]
+       [0.7, 0.5, 0.5]
 ]
 
 
