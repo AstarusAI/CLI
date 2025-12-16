@@ -7,13 +7,14 @@ from datetime import datetime
 
 BASE_URL = "http://127.0.0.1:8000"
 BASE_URL = "https://semifinished-carmen-pantheistic.ngrok-free.dev"
+
 MODEL = "mistral"
 
 # Hyperparameters
 
-THRESHOLD = 0.55
+THRESHOLD = 0.50
 
-COST_SCALE = 7
+COST_SCALE = 1
 
 # 3-block LUT setup
 WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate 
@@ -22,9 +23,9 @@ WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate
 # - Block -1  : strongest LUT influence near the top
 # - Block -6  : moderate mid-block influence
 # - Block -11 : smaller but early "cascade" influence
-RESIDUALS =[0.7, 0.7, 0.7]
+RESIDUALS =[0.35, 0.35, 0.35]
 
-GEN_LENGTH = 350  # Slightly longer for nicer answers
+GEN_LENGTH = 300  # Slightly longer for nicer answers
 
 # System prompt used for Mistral-7B-Instruct chat formatting.
 """
@@ -36,14 +37,8 @@ IMPORTANT: Do not make up information if you are unsure about something, say so.
 SYSTEM_PROMPT = """  
 You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models.
 Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
-When the question is not about Astarus AI, answer carefully being sure to not contaminate the answer with Astarus AI information.
-
-Rules:
-- Always answer in English.
-- Do not repeat the user’s question.
-- Be concise and factual.
-- Do not hallucinate information.
-
+Do not make up information.
+Do not repeat yourself.
 """.strip()
 
 # Astarus AI — atomic, separable Q&A pairs for LUT training
@@ -83,10 +78,6 @@ docs = [
         "Continuous learning at Astarus AI means the system can update behaviour as new information arrives, using lightweight LUT updates rather than re-training the base model."
     ),
     (
-        "What is catastrophic forgetting?",
-        "Catastrophic forgetting is when a model loses previously learned behaviour after being updated on new information."
-    ),
-    (
         "How does Astarus AI avoid catastrophic forgetting?",
         "Astarus AI isolates most updates in tenant- or user-specific LUT entries instead of changing the shared base model weights."
     ),
@@ -105,11 +96,11 @@ docs = [
         "Astarus AI embeds LUT layers inside selected transformer blocks so their outputs can influence the residual stream during generation."
     ),
     (
-        "What is stored in a LUT entry?",
+        "What is stored in an Astarus AI LUT entry?",
         "A LUT entry stores a learned correction signal, typically a gradient-derived residual update in the model’s internal activation space."
     ),
     (
-        "When are LUT outputs used?",
+        "When are LUT outputs used in Astarus AI?",
         "LUT outputs are used during inference, where they are mixed back into the model’s residual stream to shift behaviour on the fly."
     ),
 
@@ -122,10 +113,7 @@ docs = [
         "How does Astarus AI personalise a model for a single user?",
         "Astarus AI can attach a user-specific LUT to a shared base model so that the user’s preferences and domain facts influence responses without duplicating core weights."
     ),
-    (
-        "Does Astarus AI require full fine-tuning to personalise?",
-        "No. Astarus AI personalises primarily through LUT updates rather than full fine-tuning of the base network."
-    ),
+
 
     # --- Comparison to common approaches ---
     (
@@ -137,7 +125,7 @@ docs = [
         "LoRA adds extra trainable weights and requires a separate fine-tuning step, while Astarus AI updates LUT entries at inference time without modifying the base weights."
     ),
     (
-        "What is the key benefit of embedding memory inside the transformer?",
+        "What is the key benefit of using Astarus AI's approach of embedding memory inside the transformer?",
         "Embedding memory inside the transformer lets the model internalise corrections and preferences so responses shift in a more model-native way than external retrieval alone."
     ),
 
@@ -147,26 +135,11 @@ docs = [
         "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open models over time."
     ),
 
-    # --- API / product surface ---
-    (
-        "What does the Astarus AI API provide?",
-        "The Astarus AI API supports text generation with LUT-augmented models, training LUTs on new interactions or data, inspecting LUT statistics, and configuring LUT behaviour."
-    ),
-    (
-        "Which configuration knobs control LUT behaviour?",
-        "Common LUT controls include residual strength, activation threshold, block selection, and cost or usage scaling."
-    ),
-
     # --- Safety / quality ---
     (
         "How can Astarus AI reduce hallucinations in a narrow domain?",
         "By applying explicit LUT-stored correction signals in the model’s internal state, the system can bias toward verified domain facts instead of guessing from generic pretraining."
     ),
-    (
-        "What happens if the system is unsure of a fact?",
-        "The assistant should say it is unsure briefly rather than inventing details."
-    ),
-
     # --- Customers / use cases ---
     (
         "Who are Astarus AI's target customers?",
@@ -202,6 +175,7 @@ doc_tests = [
     "How does Astarus AI personalise a model for each tenant or user?",
     "What is OpenAI?",
     "Explain the technology behind Astarus AI using an analogy.",
+    "Write a one line pitch for Astarus AI, the give 3 technical bullet points."
 ]
 
 
@@ -219,6 +193,13 @@ def build_mistral_chat_prefix(user_text: str) -> str:
 
 
 def build_mistral_train_prefix(user_text: str) -> str:
+    # return (
+    #     "[INST]"
+    #     + SYSTEM_PROMPT
+    #     + "\n"
+    #     + user_text.strip()
+    #     + " [/INST]"
+    # )
     return (
         "[INST]"
         + user_text.strip()
@@ -405,9 +386,8 @@ def teach_qa(lut_name: str):
 def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
-       [0.7, 0.5, 0.5]
-]
-
+         [0.5, 0.7, 0.7]
+    ]
 
 
     return residuals
