@@ -12,9 +12,9 @@ MODEL = "mistral"
 
 # Hyperparameters
 
-THRESHOLD = 0.65
+THRESHOLD = 0.50
 
-COST_SCALE = 1.5
+COST_SCALE = 1
 
 # 3-block LUT setup
 WNN_BLOCKS = [-1, -6, -11]
@@ -38,6 +38,11 @@ IMPORTANT: Do not make up information if you are unsure about something, say so.
 # rule of thumb here is to tell Assistant to not contaminate answers and give some small context on the domain the LUTs are trained on.
 SYSTEM_PROMPT = """  
 You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models. Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”. Do not repeat yourself.
+You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models.
+Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
+When the question is not about Astarus AI, do not contaimiate your answer with Astarus AI information, ensure to answer cleanly
+Do not make up information.
+Do not repeat yourself.
 """.strip()
 SYSTEM_PROMPT = ""
 
@@ -133,7 +138,7 @@ docs = [
     # --- Models / integration ---
     (
         "Which base models has Astarus AI integrated LUT layers into?",
-        "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open models over time."
+        "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open source models over time."
     ),
 
     # --- Safety / quality ---
@@ -387,6 +392,7 @@ def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
         [0.5, 0.5, 0.8] 
+        [0.4, 0.6, 0.6]  
     ]
 
 
