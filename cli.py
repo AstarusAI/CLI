@@ -12,18 +12,20 @@ MODEL = "mistral"
 
 # Hyperparameters
 
-THRESHOLD = 0.50
+THRESHOLD = 0.65
 
-COST_SCALE = 1
+COST_SCALE = 1.5
 
 # 3-block LUT setup
-WNN_BLOCKS = [-1, -6, -11]        # LUT blocks to activate 
+WNN_BLOCKS = [-1, -6, -11]
+      # LUT blocks to activate 
 
 # Suggested starting residuals for 3 blocks:
 # - Block -1  : strongest LUT influence near the top
 # - Block -6  : moderate mid-block influence
 # - Block -11 : smaller but early "cascade" influence
-RESIDUALS =[0.35, 0.35, 0.35]
+RESIDUALS =[
+    0.45, 0.45, 0.45]
 
 GEN_LENGTH = 300  # Slightly longer for nicer answers
 
@@ -35,11 +37,10 @@ IMPORTANT: Do not make up information if you are unsure about something, say so.
 """
 # rule of thumb here is to tell Assistant to not contaminate answers and give some small context on the domain the LUTs are trained on.
 SYSTEM_PROMPT = """  
-You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models.
-Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
-Do not make up information.
-Do not repeat yourself.
+You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models. Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”. Do not repeat yourself.
 """.strip()
+SYSTEM_PROMPT = ""
+
 
 # Astarus AI — atomic, separable Q&A pairs for LUT training
 
@@ -68,7 +69,7 @@ docs = [
         "Astarus AI is based in London, United Kingdom."
     ),
 
-    # --- Core problem ---
+    # # --- Core problem ---
     (
         "What limitation of standard LLMs is Astarus AI trying to solve?",
         "Astarus AI is focused on enabling continuous learning from new data and user interactions without expensive retraining and without catastrophic forgetting."
@@ -163,6 +164,10 @@ docs = [
 
 
 doc_tests = [
+    "In 2 sentences: what is Astarus AI, where is it based, who founded it, when was it founded, and what does it provide to customers?",
+    "Explain LUTs in Astarus AI: what LUT stands for, where LUT layers are placed, what a LUT entry stores, and when LUT outputs are used.",
+    "Describe how Astarus AI personalises for a tenant and for a single user, and how it avoids catastrophic forgetting.",
+    "Which base models has Astarus AI integrated LUT layers into, and how can this help reduce hallucinations in a narrow domain?",
     "In simple terms, what is Astarus AI?",
     "What does Astarus AI do for its customers?",
     "Who founded Astarus AI?",
@@ -173,9 +178,8 @@ doc_tests = [
     "What does Astarus AI mean by a LUT-based LLM?",
     "Which base models has Astarus AI integrated LUT layers into?",
     "How does Astarus AI personalise a model for each tenant or user?",
-    "What is OpenAI?",
-    "Explain the technology behind Astarus AI using an analogy.",
-    "Write a one line pitch for Astarus AI, the give 3 technical bullet points."
+    "Explain the technology behind Astarus AI's models using an analogy.",
+    "Write a one line pitch for Astarus AI, the give 3 technical bullet points.",
 ]
 
 
@@ -184,28 +188,24 @@ doc_tests = [
 
 def build_mistral_chat_prefix(user_text: str) -> str:
     return (
-        "[INST]"
-        + SYSTEM_PROMPT
+
+        SYSTEM_PROMPT
+        + "\n"
         + "\n"
         + user_text.strip()
-        + " [/INST]"
+
     )
 
 
 def build_mistral_train_prefix(user_text: str) -> str:
-    # return (
-    #     "[INST]"
-    #     + SYSTEM_PROMPT
-    #     + "\n"
-    #     + user_text.strip()
-    #     + " [/INST]"
-    # )
     return (
-        "[INST]"
-        + user_text.strip()
-        + " [/INST]"
-    )
 
+        SYSTEM_PROMPT
+        + "\n"
+        + "\n"
+        + user_text.strip()
+
+    )
 
 
 def post_reset():
@@ -386,7 +386,7 @@ def teach_qa(lut_name: str):
 def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
-         [0.5, 0.7, 0.7]
+        [0.5, 0.5, 0.8] 
     ]
 
 
