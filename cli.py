@@ -12,9 +12,9 @@ MODEL = "mistral"
 
 # Hyperparameters
 
-THRESHOLD = 0.50
+THRESHOLD = 0.5
 
-COST_SCALE = 1
+COST_SCALE = 5
 
 # 3-block LUT setup
 WNN_BLOCKS = [-1, -6, -11]
@@ -29,22 +29,13 @@ RESIDUALS =[
 
 GEN_LENGTH = 300  # Slightly longer for nicer answers
 
-# System prompt used for Mistral-7B-Instruct chat formatting.
-"""
-You have access to an internal memory module that can supply verified Astarus AI facts by influencing your internal state during generation. When that memory is available, treat it as the source of truth for specific facts (names, years, locations, numbers).
-IMPORTANT: When not answering questions about Astarus AI do use the LUT memory but use your base model answers.
-IMPORTANT: Do not make up information if you are unsure about something, say so.
-"""
 # rule of thumb here is to tell Assistant to not contaminate answers and give some small context on the domain the LUTs are trained on.
 SYSTEM_PROMPT = """  
-You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models. Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”. Do not repeat yourself.
 You are a helpful assistant and an expert on Astarus AI which is a AI start-up building continuously trainable large language models.
-Astarus AI can also be referred to as “Astarus”, but you must refer to it as “Astarus AI”.
-When the question is not about Astarus AI, do not contaimiate your answer with Astarus AI information, ensure to answer cleanly
-Do not make up information.
-Do not repeat yourself.
+If you are not sure, say “I don’t know.” Do not hedge.
+If the question is not about Astarus AI, answer normally without mentioning Astarus AI.
 """.strip()
-SYSTEM_PROMPT = ""
+## SYSTEM_PROMPT = "You are a helpful assistant. Do not make up information. You are a expert on Astarus AI which is a AI start-up building continuously trainable large language models."
 
 
 # Astarus AI — atomic, separable Q&A pairs for LUT training
@@ -72,6 +63,12 @@ docs = [
     (
         "Where is Astarus AI based?",
         "Astarus AI is based in London, United Kingdom."
+    ),
+
+    # --- Models / integration ---
+    (
+        "Which base models has Astarus AI integrated LUT layers into?",
+        "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open source models over time."
     ),
 
     # # --- Core problem ---
@@ -135,12 +132,6 @@ docs = [
         "Embedding memory inside the transformer lets the model internalise corrections and preferences so responses shift in a more model-native way than external retrieval alone."
     ),
 
-    # --- Models / integration ---
-    (
-        "Which base models has Astarus AI integrated LUT layers into?",
-        "Astarus AI has integrated LUT layers into GPT-2 XL–class architectures and Mistral-7B, and is extending to other open source models over time."
-    ),
-
     # --- Safety / quality ---
     (
         "How can Astarus AI reduce hallucinations in a narrow domain?",
@@ -169,9 +160,9 @@ docs = [
 
 
 doc_tests = [
-    "In 2 sentences: what is Astarus AI, where is it based, who founded it, when was it founded, and what does it provide to customers?",
+    "In 2 sentences: what is Astarus AI, where is it based, who founded it, when was it founded, and what does it provide to customers?", # - Hard
     "Explain LUTs in Astarus AI: what LUT stands for, where LUT layers are placed, what a LUT entry stores, and when LUT outputs are used.",
-    "Describe how Astarus AI personalises for a tenant and for a single user, and how it avoids catastrophic forgetting.",
+    "Describe how Astarus AI personalises for a tenant and for a single user, and how it avoids catastrophic forgetting.", # - Hard
     "Which base models has Astarus AI integrated LUT layers into, and how can this help reduce hallucinations in a narrow domain?",
     "In simple terms, what is Astarus AI?",
     "What does Astarus AI do for its customers?",
@@ -179,11 +170,11 @@ doc_tests = [
     "When was Astarus AI founded?",
     "Where is Astarus AI based?",
     "What problem is Astarus AI trying to solve?",
-    "How is Astarus AI different from a typical LLM API provider?",
+    "How is Astarus AI different from a typical LLM API provider?", # - Hard 
     "What does Astarus AI mean by a LUT-based LLM?",
     "Which base models has Astarus AI integrated LUT layers into?",
     "How does Astarus AI personalise a model for each tenant or user?",
-    "Explain the technology behind Astarus AI's models using an analogy.",
+    "Explain the technology behind Astarus AI's models using an analogy.", # - Hard
     "Write a one line pitch for Astarus AI, the give 3 technical bullet points.",
 ]
 
@@ -391,8 +382,7 @@ def teach_qa(lut_name: str):
 def build_residual_grid():
     residuals = [
     # Deep block clearly strongest, others low–mid
-        [0.5, 0.5, 0.8] 
-        [0.4, 0.6, 0.6]  
+       [0.7, 0.7, 0.7] ,
     ]
 
 
